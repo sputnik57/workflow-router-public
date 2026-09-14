@@ -1,51 +1,28 @@
 // Suggestion-provider interface.
 //
-// Default implementation: a direct call to OpenRouter's chat-completions API,
-// using your own API key (VITE_OPENROUTER_API_KEY in .env.local). This key is
-// bundled into the client-side JS bundle by Vite -- fine for running this app
-// locally on your own machine, but do NOT deploy a build of this app to a
-// public server with a real key baked in, since anyone loading the page could
-// read it out of the bundle. Get a key at https://openrouter.ai/keys.
+// Default implementation: posts to this app's own dev-server middleware
+// (/api/llm-suggest, vite.config.js), which runs server-side and calls
+// whichever of Anthropic/OpenAI/OpenRouter you've configured with a plain
+// (non-VITE_-prefixed) API key in .env.local. The key never reaches the
+// browser this way -- it's read server-side only, and the client never talks
+// to a provider directly. See vite.config.js's callLlm() for the actual
+// provider logic and .env.example for which env vars to set.
 //
-// The `provider` param is a documented extension seam: an n8n-routed call (if
-// you'd rather keep the LLM call out of the client entirely), a different
-// direct API (OpenAI, Anthropic), or an agent-routed call (OpenClaw, Hermes)
-// can be added as another branch here without touching any calling code.
+// The `provider` param stays as a documented extension seam for something
+// other than the built-in proxy -- an agent-routed call (OpenClaw, Hermes),
+// or your own separately-hosted proxy -- without touching any calling code.
 
-const OPENROUTER_API_KEY = import.meta.env?.VITE_OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = import.meta.env?.VITE_OPENROUTER_MODEL || 'anthropic/claude-opus-5';
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-
-async function callOpenRouter(systemPrompt, userPrompt, schemaName, schema) {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error(
-      'Suggestion feature not configured: set VITE_OPENROUTER_API_KEY in .env.local ' +
-      '(get a key at https://openrouter.ai/keys).'
-    );
-  }
-  const res = await fetch(OPENROUTER_URL, {
+async function callLlm(systemPrompt, userPrompt, schemaName, schema) {
+  const res = await fetch('/api/llm-suggest', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-      'HTTP-Referer': 'https://github.com',
-      'X-Title': 'Workflow Router',
-    },
-    body: JSON.stringify({
-      model: OPENROUTER_MODEL,
-      max_tokens: 6000,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: 'json_schema', json_schema: { name: schemaName, strict: true, schema } },
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ systemPrompt, userPrompt, schemaName, schema }),
   });
-  if (!res.ok) throw new Error(`OpenRouter request failed: ${res.status}`);
-  const data = await res.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('OpenRouter returned no content.');
-  return JSON.parse(content);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Suggestion request failed: ${res.status}`);
+  }
+  return res.json();
 }
 
 const SUGGEST_SYSTEM_PROMPT =
@@ -108,15 +85,14 @@ const SUGGEST_SCHEMA = {
 // The caller renders this as a distinct "proposed" overlay and never merges
 // it into the real graph automatically (App.jsx's handleAcceptSuggestion
 // does that only on explicit user confirmation).
-export async function suggestPath(asset, graph, { provider = 'openrouter' } = {}) {
-  if (provider === 'openrouter') {
+export async function suggestPath(asset, graph, { provider = 'default' } = {}) {
+  if (provider === 'default') {
     const userPrompt = `ASSET:\n${JSON.stringify(asset, null, 2)}\n\nCURRENT GRAPH:\n${JSON.stringify(graph, null, 2)}`;
-    return callOpenRouter(SUGGEST_SYSTEM_PROMPT, userPrompt, 'workflow_suggestion', SUGGEST_SCHEMA);
+    return callLlm(SUGGEST_SYSTEM_PROMPT, userPrompt, 'workflow_suggestion', SUGGEST_SCHEMA);
   }
 
-  // Extension seam -- not implemented. A future branch here could route
-  // through n8n instead (keeping the LLM call server-side), call a
-  // different provider directly, or hand off to an agent runtime.
+  // Extension seam -- not implemented. A future branch here could hand off
+  // to an agent runtime (OpenClaw, Hermes) or a separately-hosted proxy.
   throw new Error(`Unknown or not-yet-implemented suggestion provider: "${provider}"`);
 }
 
@@ -196,10 +172,10 @@ const PROPOSE_SCHEMA = {
 // Returns { graphFile, nodes, edges, rationale } -- see PROPOSE_SCHEMA above.
 // Cross-graph edges are explicitly out of scope -- every edge must resolve
 // within the single chosen graphFile.
-export async function proposeFromGoal(goal, assets, graphsByFile, { provider = 'openrouter' } = {}) {
-  if (provider === 'openrouter') {
+export async function proposeFromGoal(goal, assets, graphsByFile, { provider = 'default' } = {}) {
+  if (provider === 'default') {
     const userPrompt = `GOAL:\n${goal}\n\nASSETS:\n${JSON.stringify(assets, null, 2)}\n\nGRAPHS:\n${JSON.stringify(graphsByFile, null, 2)}`;
-    return callOpenRouter(PROPOSE_SYSTEM_PROMPT, userPrompt, 'workflow_goal_proposal', PROPOSE_SCHEMA);
+    return callLlm(PROPOSE_SYSTEM_PROMPT, userPrompt, 'workflow_goal_proposal', PROPOSE_SCHEMA);
   }
 
   throw new Error(`Unknown or not-yet-implemented suggestion provider: "${provider}"`);

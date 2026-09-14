@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -129,6 +129,119 @@ function readJsonBody(req) {
   });
 }
 
+// LLM proxy for the suggestion features -- runs server-side (this dev-server
+// process) so your API key lives in a plain (non-VITE_-prefixed) env var and
+// never gets bundled into client JS, and so an Anthropic call doesn't hit
+// browser CORS restrictions. The client (src/lib/suggest.js) only ever posts
+// { systemPrompt, userPrompt, schemaName, schema } here and gets back the
+// parsed JSON result -- it never talks to a provider directly.
+// Supports Anthropic, OpenAI, or OpenRouter -- set whichever one you
+// actually have a key for in .env.local. If more than one key is set, order
+// of preference is Anthropic > OpenAI > OpenRouter unless LLM_PROVIDER
+// explicitly names one ("anthropic" | "openai" | "openrouter").
+async function callAnthropic(apiKey, model, systemPrompt, userPrompt, schemaName, schema) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 6000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      tools: [{ name: schemaName, description: 'Return the proposal matching this schema.', input_schema: schema }],
+      tool_choice: { type: 'tool', name: schemaName },
+    }),
+  });
+  if (!res.ok) throw new Error(`Anthropic request failed: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const toolUse = data.content?.find((c) => c.type === 'tool_use');
+  if (!toolUse) throw new Error('Anthropic returned no tool_use block.');
+  return toolUse.input;
+}
+
+async function callOpenRouter(apiKey, model, systemPrompt, userPrompt, schemaName, schema) {
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      'HTTP-Referer': 'https://github.com',
+      'X-Title': 'Workflow Router',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 6000,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: { type: 'json_schema', json_schema: { name: schemaName, strict: true, schema } },
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenRouter request failed: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('OpenRouter returned no content.');
+  return JSON.parse(content);
+}
+
+async function callOpenAI(apiKey, model, systemPrompt, userPrompt, schemaName, schema) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      max_tokens: 6000,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: { type: 'json_schema', json_schema: { name: schemaName, strict: true, schema } },
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenAI request failed: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('OpenAI returned no content.');
+  return JSON.parse(content);
+}
+
+const PROVIDERS = {
+  anthropic: {
+    key: () => process.env.ANTHROPIC_API_KEY,
+    call: (key, systemPrompt, userPrompt, schemaName, schema) =>
+      callAnthropic(key, process.env.ANTHROPIC_MODEL || 'claude-opus-5', systemPrompt, userPrompt, schemaName, schema),
+  },
+  openai: {
+    key: () => process.env.OPENAI_API_KEY,
+    call: (key, systemPrompt, userPrompt, schemaName, schema) =>
+      callOpenAI(key, process.env.OPENAI_MODEL || 'gpt-5', systemPrompt, userPrompt, schemaName, schema),
+  },
+  openrouter: {
+    key: () => process.env.OPENROUTER_API_KEY,
+    call: (key, systemPrompt, userPrompt, schemaName, schema) =>
+      callOpenRouter(key, process.env.OPENROUTER_MODEL || 'anthropic/claude-opus-5', systemPrompt, userPrompt, schemaName, schema),
+  },
+};
+
+async function callLlm(systemPrompt, userPrompt, schemaName, schema) {
+  const forced = process.env.LLM_PROVIDER;
+  const order = forced && PROVIDERS[forced] ? [forced] : ['anthropic', 'openai', 'openrouter'];
+  for (const name of order) {
+    const key = PROVIDERS[name].key();
+    if (key) return PROVIDERS[name].call(key, systemPrompt, userPrompt, schemaName, schema);
+  }
+  throw new Error(
+    'Suggestion feature not configured: set one of ANTHROPIC_API_KEY, OPENAI_API_KEY, or ' +
+    'OPENROUTER_API_KEY in .env.local (plain env vars, not VITE_-prefixed -- these stay ' +
+    'server-side, never bundled into client JS).'
+  );
+}
+
 // Small dev-server middleware plugin: serves the graph JSON API directly inside
 // the same `vite dev` process, so no separate backend/port is needed.
 function graphApiPlugin() {
@@ -184,6 +297,18 @@ function graphApiPlugin() {
           res.setHeader('Content-Type', 'application/json');
           try {
             res.end(JSON.stringify({ files: listGraphs(), graphs: listGraphsWithMeta() }));
+          } catch (err) {
+            res.statusCode = 500;
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+        if (url.pathname === '/api/llm-suggest' && req.method === 'POST') {
+          res.setHeader('Content-Type', 'application/json');
+          try {
+            const { systemPrompt, userPrompt, schemaName, schema } = await readJsonBody(req);
+            const result = await callLlm(systemPrompt, userPrompt, schemaName, schema);
+            res.end(JSON.stringify(result));
           } catch (err) {
             res.statusCode = 500;
             res.end(JSON.stringify({ error: err.message }));
@@ -250,6 +375,14 @@ function graphApiPlugin() {
   };
 }
 
-export default defineConfig({
-  plugins: [react(), graphApiPlugin()],
+// Vite only auto-loads VITE_-prefixed vars into import.meta.env for the
+// CLIENT bundle -- plain vars like ANTHROPIC_API_KEY are never bundled
+// (that's the whole point), but they also don't reach this config file's
+// own process.env automatically. loadEnv() with an empty prefix reads
+// .env.local's full contents so callLlm() above can actually see them.
+export default defineConfig(({ mode }) => {
+  Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
+  return {
+    plugins: [react(), graphApiPlugin()],
+  };
 });

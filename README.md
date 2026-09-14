@@ -56,21 +56,20 @@ public download can offer meaningfully, so it's deliberately left out.
 
 ```bash
 npm install
-cp .env.example .env.local   # add your own OpenRouter API key
+cp .env.example .env.local   # add your own Anthropic, OpenAI, or OpenRouter key
 npm run dev
 ```
 
-The "Suggest a path" and "Propose a new workflow" features call
-[OpenRouter](https://openrouter.ai/keys) directly from the browser using
-your own API key (`VITE_OPENROUTER_API_KEY` in `.env.local`). That key
-gets bundled into the client-side JS — fine for running this locally on
-your own machine, but **do not deploy a build of this app to a public
-server** with a real key baked in. Everything else works with no key at
-all.
+The "Suggest a path" and "Propose a new workflow" features need one LLM
+provider — Anthropic, OpenAI, or OpenRouter, whichever you have a key for
+(see `.env.example`). The call happens **server-side**, inside the same dev
+server this app already runs (`vite.config.js`'s `/api/llm-suggest`), so
+your key stays in `.env.local` and is never sent to the browser or bundled
+into client JS. Everything else in the app works with no key at all.
 
 Dev server includes a small Node middleware (`vite.config.js`) serving the
-graph/resources/quick-start/brand JSON directly from `data/` — no separate
-backend needed.
+graph/resources/quick-start/brand JSON directly from `data/`, plus that LLM
+proxy — no separate backend needed.
 
 ## Using this with your own workflows
 
