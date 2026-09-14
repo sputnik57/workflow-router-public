@@ -1,0 +1,12 @@
+{
+  "resources": [
+    { "id": "asset-typeform", "name": "Typeform", "category": "external-service", "vendor": "Typeform", "description": "Referral intake form used to capture new leads.", "path": "https://typeform.com" },
+    { "id": "asset-mailchimp", "name": "Mailchimp", "category": "external-service", "vendor": "Mailchimp", "description": "Cold outreach email campaigns to new prospects.", "path": "https://mailchimp.com" },
+    { "id": "asset-chatgpt", "name": "ChatGPT", "category": "llm-access", "vendor": "OpenAI", "description": "Drafts proposals from discovery-call notes.", "path": "https://chat.openai.com" },
+    { "id": "asset-canva", "name": "Canva", "category": "creative-suite", "vendor": "Canva", "description": "Used to produce the draft deliverable.", "path": "https://canva.com" },
+    { "id": "asset-drive", "name": "Google Drive", "category": "external-service", "vendor": "Google", "description": "Stores and shares the final deliverable with the client.", "path": "https://drive.google.com" },
+    { "id": "asset-stripe", "name": "Stripe", "category": "external-service", "vendor": "Stripe", "description": "Sends invoices and collects payment.", "path": "https://stripe.com" },
+    { "id": "asset-zapier", "name": "Zapier", "category": "external-service", "vendor": "Zapier", "description": "Automation platform, account is active but not yet wired into any step below.", "path": "https://zapier.com", "notes": "Deliberately left unreferenced -- run Portfolio Scan in Admin > Asset management to see how the app flags this as idle." },
+    { "id": "asset-notion", "name": "Notion", "category": "dashboard-feature", "vendor": "Notion", "description": "General notes/wiki, not yet tied to a specific workflow step.", "path": "https://notion.so", "notes": "Also deliberately unreferenced, for the same Portfolio Scan demo." }
+  ]
+}

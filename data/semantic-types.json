@@ -1,0 +1,21 @@
+{
+  "_guide": [
+    "Semantic type vocabulary for node compatibility checking.",
+    "Each node in data/*.json gets a producesType (one) and/or acceptsTypes (a list) referencing an id below by exact string match.",
+    "This is a CLOSED, curated vocabulary -- don't add a new type for a node that already fits an existing one closely enough.",
+    "Kept as a separate file from the graph itself so the vocabulary has one home instead of being redefined ad hoc per graph.",
+    "This file describes the example workflow shipped with the app (data/graph.json) -- replace both together with your own business's real types and steps."
+  ],
+  "types": [
+    { "id": "lead-record", "description": "A potential client, with enough contact info to reach them" },
+    { "id": "discovery-notes", "description": "Notes taken during an initial call with a prospect" },
+    { "id": "proposal-document", "description": "A drafted service proposal for a prospect" },
+    { "id": "signed-contract", "description": "An agreed, signed engagement contract" },
+    { "id": "project-brief", "description": "Scoped requirements and timeline for a paid engagement" },
+    { "id": "draft-deliverable", "description": "Work product in progress, not yet approved by the client" },
+    { "id": "client-feedback", "description": "Notes from a client reviewing a draft" },
+    { "id": "final-deliverable", "description": "Approved, finished work ready to hand off" },
+    { "id": "invoice-record", "description": "A billing request sent to a client" },
+    { "id": "payment-record", "description": "Confirmation that an invoice was paid" }
+  ]
+}

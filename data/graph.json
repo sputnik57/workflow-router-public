@@ -1,0 +1,132 @@
+{
+  "nodes": [
+    {
+      "id": "lead_referral",
+      "label": "Referral intake form",
+      "type": "tool",
+      "resourceId": "asset-typeform",
+      "inputs": [],
+      "outputs": ["discovery_call"],
+      "producesType": "lead-record",
+      "runnable": true
+    },
+    {
+      "id": "lead_cold_outreach",
+      "label": "Cold outreach emails",
+      "type": "tool",
+      "resourceId": "asset-mailchimp",
+      "inputs": [],
+      "outputs": ["discovery_call"],
+      "producesType": "lead-record",
+      "runnable": true
+    },
+    {
+      "id": "discovery_call",
+      "label": "Discovery call",
+      "type": "manual",
+      "inputs": ["lead_referral", "lead_cold_outreach"],
+      "outputs": ["proposal_draft"],
+      "acceptsTypes": ["lead-record"],
+      "producesType": "discovery-notes",
+      "assumes": [
+        "Held live, 20-30 minutes, notes taken by hand",
+        "Prospect has already responded to the intake form or cold email"
+      ]
+    },
+    {
+      "id": "proposal_draft",
+      "label": "Draft the proposal",
+      "type": "tool",
+      "resourceId": "asset-chatgpt",
+      "inputs": ["discovery_call"],
+      "outputs": ["contract_signed"],
+      "acceptsTypes": ["discovery-notes"],
+      "producesType": "proposal-document",
+      "runnable": true
+    },
+    {
+      "id": "contract_signed",
+      "label": "Contract signed",
+      "type": "manual",
+      "inputs": ["proposal_draft"],
+      "outputs": ["project_kickoff"],
+      "acceptsTypes": ["proposal-document"],
+      "producesType": "signed-contract",
+      "assumes": ["Client reviews and e-signs before any paid work starts"]
+    },
+    {
+      "id": "project_kickoff",
+      "label": "Project kickoff",
+      "type": "manual",
+      "inputs": ["contract_signed"],
+      "outputs": ["draft_work"],
+      "acceptsTypes": ["signed-contract"],
+      "producesType": "project-brief",
+      "assumes": ["Scope and timeline confirmed directly with the client before work starts"]
+    },
+    {
+      "id": "draft_work",
+      "label": "Produce the draft",
+      "type": "tool",
+      "resourceId": "asset-canva",
+      "inputs": ["project_kickoff"],
+      "outputs": ["client_review"],
+      "acceptsTypes": ["project-brief"],
+      "producesType": "draft-deliverable",
+      "runnable": true
+    },
+    {
+      "id": "client_review",
+      "label": "Client review",
+      "type": "manual",
+      "inputs": ["draft_work"],
+      "outputs": ["final_delivery"],
+      "acceptsTypes": ["draft-deliverable"],
+      "producesType": "client-feedback",
+      "assumes": ["Client responds with specific change requests or approval"]
+    },
+    {
+      "id": "final_delivery",
+      "label": "Final delivery",
+      "type": "tool",
+      "resourceId": "asset-drive",
+      "inputs": ["client_review"],
+      "outputs": ["invoice_sent"],
+      "acceptsTypes": ["client-feedback"],
+      "producesType": "final-deliverable",
+      "runnable": true
+    },
+    {
+      "id": "invoice_sent",
+      "label": "Invoice sent",
+      "type": "tool",
+      "resourceId": "asset-stripe",
+      "inputs": ["final_delivery"],
+      "outputs": ["payment_received"],
+      "acceptsTypes": ["final-deliverable"],
+      "producesType": "invoice-record",
+      "runnable": true
+    },
+    {
+      "id": "payment_received",
+      "label": "Payment received",
+      "type": "dataset",
+      "inputs": ["invoice_sent"],
+      "outputs": [],
+      "acceptsTypes": ["invoice-record"],
+      "producesType": "payment-record"
+    }
+  ],
+  "edges": [
+    { "source": "lead_referral", "target": "discovery_call", "weight": 0.1 },
+    { "source": "lead_cold_outreach", "target": "discovery_call", "weight": 0.5 },
+    { "source": "discovery_call", "target": "proposal_draft", "weight": 0.5 },
+    { "source": "proposal_draft", "target": "contract_signed", "weight": 0.3 },
+    { "source": "contract_signed", "target": "project_kickoff", "weight": 0.2 },
+    { "source": "project_kickoff", "target": "draft_work", "weight": 3 },
+    { "source": "draft_work", "target": "client_review", "weight": 0.2 },
+    { "source": "client_review", "target": "final_delivery", "weight": 1 },
+    { "source": "final_delivery", "target": "invoice_sent", "weight": 0.1 },
+    { "source": "invoice_sent", "target": "payment_received", "weight": 0.1 }
+  ]
+}

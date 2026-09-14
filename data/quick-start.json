@@ -1,0 +1,33 @@
+{
+  "_guide": [
+    "HOW TO WRITE A QUICK-START SCENARIO -- read this before adding one.",
+    "Each scenario is a business question phrased in plain language, paired with a startId + goalId that must both be real node ids in the named graphFile.",
+    "1. Pick a startId (a genuine entry point, usually a node with no inputs) and a goalId (where the journey honestly ends for THIS question).",
+    "2. Confirm a real path exists by checking the app's Node dropdown -- if it says '0 nodes can reach this goal', the goalId is unreachable.",
+    "3. Write the question so its scope honestly matches exactly what startId->goalId covers.",
+    "4. Give it a short kebab-case id and add it to the scenarios array below."
+  ],
+  "scenarios": [
+    {
+      "id": "referral-to-contract",
+      "question": "How fast can a referral lead turn into a signed contract?",
+      "graphFile": "graph.json",
+      "startId": "lead_referral",
+      "goalId": "contract_signed"
+    },
+    {
+      "id": "cold-lead-to-paid",
+      "question": "What's the full path from a cold-outreach lead to getting paid?",
+      "graphFile": "graph.json",
+      "startId": "lead_cold_outreach",
+      "goalId": "payment_received"
+    },
+    {
+      "id": "kickoff-to-delivery",
+      "question": "Once a contract is signed, what's left before the client gets a final deliverable?",
+      "graphFile": "graph.json",
+      "startId": "project_kickoff",
+      "goalId": "final_delivery"
+    }
+  ]
+}

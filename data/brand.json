@@ -1,0 +1,29 @@
+{
+  "sourcePath": null,
+  "cssSourcePath": null,
+  "status": "Example brand data shipped with the app -- edit this file to describe your own business instead.",
+  "name": {
+    "written": "Acme Consulting",
+    "writtenNote": "Placeholder -- replace with your own business or brand name.",
+    "internalShorthand": "Acme",
+    "internalShorthandNote": "Placeholder -- replace with however you refer to yourself internally, if different."
+  },
+  "anchorLine": "We turn a good first call into finished, paid work -- reliably, every time.",
+  "voice": {
+    "register": "Plain, direct, concrete. Describe what actually happens, not aspirational language.",
+    "soundsLike": [
+      "\"Here's exactly what we deliver, and by when.\"",
+      "\"That's out of scope -- here's what it would take to add it.\""
+    ],
+    "neverSoundsLike": [
+      "\"Revolutionary,\" \"game-changing,\" \"synergy\"",
+      "Vague promises with no concrete deliverable behind them"
+    ]
+  },
+  "positioning": {
+    "oneLiner": "A small, real example of how one business's actual workflow can be mapped, optimized, and tracked.",
+    "commodityTrap": "Most workflow tools describe an idealized process, not what a business actually does.",
+    "moat": "This graph reflects real steps and real costs, not an idealized diagram.",
+    "codeSwitching": "Replace this whole file with your own business's real name, voice, and positioning."
+  }
+}
