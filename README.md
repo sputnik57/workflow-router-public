@@ -89,3 +89,10 @@ proxy — no separate backend needed.
 
 See `docs/user-guide.md` for the full semantic-type vocabulary and graph-
 building methodology.
+
+## Support
+
+Built solo. Issues and PRs are welcome, but there's no support SLA — I'll
+get to things as I can. If you'd rather not touch the code yourself and
+just want this running on your own business, paid setup help is
+available: [teknoculture.com](https://teknoculture.com).
