@@ -1,8 +1,12 @@
 {
   "name": "workflow-router",
-  "private": true,
+  "description": "Turn how your business actually runs into a navigable graph -- find the fastest path to a goal, get LLM-proposed new uses for owned assets, spot idle tools.",
+  "license": "MIT",
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
