@@ -700,7 +700,7 @@ export default function App() {
                     className="text-sm px-2 py-1.5 rounded"
                     style={{ background: theme.PANEL, border: `1px solid ${theme.ACCENT_ALT}`, color: theme.TEXT, flex: '1 1 auto', minWidth: 0 }}
                   >
-                    <option value="">Pick an asset…</option>
+                    <option value="">Pick a node/asset…</option>
                     {resources.map((r) => <option key={r.id} value={r.id} title={r.description || r.name}>{r.name}</option>)}
                   </select>
                   <button
