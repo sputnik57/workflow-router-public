@@ -638,7 +638,7 @@ export default function App() {
             </select>
           </div>
           {quickStart.length > 0 && (
-            <div style={{ width: 200 }}>
+            <div style={{ width: goalPromptOpen ? 360 : 200 }}>
               <label className="block text-xs mb-1" style={{ color: theme.MUTED }}>Ask a business question</label>
               <select
                 value=""
@@ -661,30 +661,32 @@ export default function App() {
                 {quickStart.map((s) => <option key={s.id} value={s.id} title={s.question}>{s.question}</option>)}
               </select>
               {goalPromptOpen && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex flex-col gap-2 mt-2">
                   <input
                     type="text"
                     value={goalPromptText}
                     onChange={(e) => setGoalPromptText(e.target.value)}
-                    placeholder="e.g. lead gen, faster onboarding…"
+                    placeholder="e.g. turn underutilized subscriptions into a revenue-generating workflow…"
                     className="text-sm px-2 py-1.5 rounded"
-                    style={{ background: theme.PANEL, border: `1px solid ${theme.ACCENT_ALT}`, color: theme.TEXT, flex: '1 1 auto', minWidth: 0 }}
+                    style={{ background: theme.PANEL, border: `1px solid ${theme.ACCENT_ALT}`, color: theme.TEXT, width: '100%' }}
                   />
-                  <button
-                    onClick={() => { if (goalPromptText.trim()) { handleProposeFromGoal(goalPromptText); setGoalPromptOpen(false); setGoalPromptText(''); } }}
-                    disabled={!goalPromptText.trim() || goalProposalStatus === 'loading'}
-                    className="text-xs px-2 py-1.5 rounded font-medium"
-                    style={{ background: theme.ACCENT_ALT, color: theme.ON_ACCENT, cursor: goalPromptText.trim() ? 'pointer' : 'default' }}
-                  >
-                    {goalProposalStatus === 'loading' ? 'Proposing…' : 'Propose'}
-                  </button>
-                  <button
-                    onClick={() => { setGoalPromptOpen(false); setGoalPromptText(''); }}
-                    className="text-xs px-2 py-1.5 rounded"
-                    style={{ background: 'transparent', border: `1px solid ${theme.BORDER}`, color: theme.MUTED, cursor: 'pointer' }}
-                  >
-                    Cancel
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { if (goalPromptText.trim()) { handleProposeFromGoal(goalPromptText); setGoalPromptOpen(false); setGoalPromptText(''); } }}
+                      disabled={!goalPromptText.trim() || goalProposalStatus === 'loading'}
+                      className="text-xs px-2 py-1.5 rounded font-medium"
+                      style={{ background: theme.ACCENT_ALT, color: theme.ON_ACCENT, cursor: goalPromptText.trim() ? 'pointer' : 'default' }}
+                    >
+                      {goalProposalStatus === 'loading' ? 'Proposing…' : 'Propose'}
+                    </button>
+                    <button
+                      onClick={() => { setGoalPromptOpen(false); setGoalPromptText(''); }}
+                      className="text-xs px-2 py-1.5 rounded"
+                      style={{ background: 'transparent', border: `1px solid ${theme.BORDER}`, color: theme.MUTED, cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
               {goalProposalStatus === 'error' && goalProposalError && (
