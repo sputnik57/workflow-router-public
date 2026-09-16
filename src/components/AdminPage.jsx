@@ -94,8 +94,8 @@ export default function AdminPage({
     <div style={{ background: c.bg, color: c.fg, minHeight: '100%', borderRadius: 8 }} className="p-6">
       <div className="flex gap-2 mb-6">
         <TabButton id="brand" label="Brand" />
-        <TabButton id="assets" label="Asset management" />
-        <TabButton id="workflow" label="Workflow management" />
+        <TabButton id="assets" label="Node/Asset Mgt" />
+        <TabButton id="workflow" label="Workflow Mgt" />
         <TabButton id="suggestions" label="Explorations" />
       </div>
 
