@@ -627,7 +627,7 @@ export default function App() {
             </select>
           </div>
           <div style={{ width: 200 }}>
-            <label className="block text-xs mb-1" style={{ color: theme.MUTED }}>Node</label>
+            <label className="block text-xs mb-1" style={{ color: theme.MUTED }}>Node/Asset</label>
             <select
               value={goalId ?? ''}
               onChange={(e) => handlePickGoal(e.target.value)}
@@ -652,7 +652,7 @@ export default function App() {
               >
                 <option value="">Pick a question…</option>
                 <option value="__suggest__" title="Asks an LLM to propose a brand-new, unverified connection -- unlike every question below, which is a pre-verified, known-working path.">
-                  Suggest a new path using an asset…
+                  Suggest a new workflow path using an asset.
                 </option>
                 <option value="__propose_goal__" title="Surveys every asset and every workflow at once and proposes a whole new connected subgraph for a stated business goal -- broader and less certain than the single-asset suggestion above.">
                   Propose a new workflow for a business goal…
