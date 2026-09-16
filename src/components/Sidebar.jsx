@@ -60,7 +60,7 @@ export default function Sidebar({
 
   return (
     <div style={{ width: 280, flex: '0 0 auto' }}>
-      <div className="text-xs mb-2" style={{ color: t.MUTED }}>Node types — click to filter</div>
+      <div className="text-xs mb-2" style={{ color: t.MUTED }}>Node/Asset types — click to filter</div>
       <div className="flex flex-col gap-1.5 mb-4">
         {Object.keys(TYPE_LABEL).map((k) => {
           const active = typeFilter.size === 0 || typeFilter.has(k);
@@ -173,7 +173,7 @@ export default function Sidebar({
             )}
           </div>
         ) : (
-          <div style={{ color: t.MUTED }}>Click a node to see its inputs, outputs, and dependencies.</div>
+          <div style={{ color: t.MUTED }}>Click a node/asset to see its inputs, outputs, and dependencies.</div>
         )}
       </div>
 

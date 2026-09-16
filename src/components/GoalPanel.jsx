@@ -8,10 +8,10 @@ export default function GoalPanel({ ranked, selectedStartId, onPickStart }) {
   return (
     <div className="rounded p-3 text-sm" style={{ background: t.PANEL, border: `1px solid ${t.BORDER}`, maxHeight: 260, overflowY: 'auto' }}>
       <div className="mb-2" style={{ color: t.MUTED }}>
-        {ranked.length} node{ranked.length === 1 ? '' : 's'} can reach this goal — click one to see its routes
+        {ranked.length} node{ranked.length === 1 ? '' : 's'}/asset{ranked.length === 1 ? '' : 's'} can reach this goal — click one to see its routes
       </div>
       {ranked.length === 0 ? (
-        <div style={{ color: t.MUTED }}>No node in this graph can currently reach the selected goal.</div>
+        <div style={{ color: t.MUTED }}>No node/asset in this graph can currently reach the selected goal.</div>
       ) : (
         <ol className="space-y-1.5">
           {ranked.map((r) => {

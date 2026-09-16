@@ -479,7 +479,7 @@ const GraphCanvas = forwardRef(function GraphCanvas({
           if (!p) return null;
           return (
             <g key={`proposed-node-${n.id}`} transform={`translate(${p.x},${p.y})`} style={{ opacity: 0.9 }}>
-              <title>{n.assumes?.join(' ') || 'Proposed node -- not yet part of this workflow.'}</title>
+              <title>{n.assumes?.join(' ') || 'Proposed node/asset -- not yet part of this workflow.'}</title>
               <NodeShape
                 shape={TYPE_SHAPE[n.type] || TYPE_SHAPE.tool}
                 r={11}
